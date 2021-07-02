@@ -87,20 +87,13 @@ impl VmFd {
     /// Creates/modifies a guest physical memory.
     ///
     pub fn map_user_memory(&self, user_memory_region: mshv_user_mem_region) -> Result<()> {
-        #[allow(clippy::cast_lossless)]
-        let ret = unsafe { ioctl_with_ref(self, MSHV_MAP_GUEST_MEMORY(), &user_memory_region) };
-        if ret == 0 {
-            Ok(())
+        let op = if user_memory_region.size != 0 {
+            MSHV_MAP_GUEST_MEMORY()
         } else {
-            Err(errno::Error::last())
-        }
-    }
-    ///
-    /// Unmap a guest physical memory.
-    ///
-    pub fn umap_user_memory(&self, user_memory_region: mshv_user_mem_region) -> Result<()> {
+            MSHV_UNMAP_GUEST_MEMORY()
+        };
         #[allow(clippy::cast_lossless)]
-        let ret = unsafe { ioctl_with_ref(self, MSHV_UNMAP_GUEST_MEMORY(), &user_memory_region) };
+        let ret = unsafe { ioctl_with_ref(self, op, &user_memory_region) };
         if ret == 0 {
             Ok(())
         } else {
